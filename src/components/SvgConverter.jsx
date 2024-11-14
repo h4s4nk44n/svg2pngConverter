@@ -50,8 +50,8 @@ const SvgConverter = () => {
     
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      canvas.width = originalWidth * scale;
-      canvas.height = originalHeight * scale;
+      canvas.width = format === 'png' ? originalWidth * scale : originalWidth;
+      canvas.height = format === 'png' ? originalHeight * scale : originalHeight;
 
       const ctx = canvas.getContext('2d');
       // Set white background for JPEG
@@ -96,22 +96,25 @@ const SvgConverter = () => {
           {dimensions && (
             <div className="size-info">
               <p>Original size: {Math.round(dimensions.width)}px × {Math.round(dimensions.height)}px</p>
-              <p>Scaled size: {Math.round(dimensions.width * scale)}px × {Math.round(dimensions.height * scale)}px</p>
+              {format === 'png' && (
+                <p>Scaled size: {Math.round(dimensions.width * scale)}px × {Math.round(dimensions.height * scale)}px</p>
+              )}
             </div>
           )}
-          
-          <div className="scale-control">
-            <label htmlFor="scale">Scale:</label>
-            <input
-              id="scale"
-              type="number"
-              min="0.1"
-              max="10"
-              step="0.1"
-              value={scale}
-              onChange={(e) => setScale(Math.max(0.1, parseFloat(e.target.value) || 1))}
-            />
-          </div>
+          {format === 'png' && (
+            <div className="scale-control">
+              <label htmlFor="scale">Scale:</label>
+              <input
+                id="scale"
+                type="number"
+                min="0.1"
+                max="10"
+                step="0.1"
+                value={scale}
+                onChange={(e) => setScale(Math.max(0.1, parseFloat(e.target.value) || 1))}
+              />
+            </div>
+          )}
 
           <div className="format-control">
             <label htmlFor="format">Format:</label>
