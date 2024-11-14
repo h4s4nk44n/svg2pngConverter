@@ -1,0 +1,105 @@
+.converter-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 30px;
+  text-align: center;
+  background-color: #1e1e1e;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.dropzone {
+  border: 2px dashed #444;
+  border-radius: 12px;
+  padding: 30px;
+  margin: 20px 0;
+  cursor: pointer;
+  background-color: #2a2a2a;
+  transition: all 0.3s ease;
+  color: #fff;
+}
+
+.dropzone:hover {
+  border-color: #00ff9d;
+  background-color: #333;
+}
+
+.controls {
+  margin-top: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+}
+
+.preview-image {
+  max-width: 300px;
+  max-height: 300px;
+  border-radius: 8px;
+  padding: 15px;
+  background-color: #2a2a2a;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.size-info {
+  background-color: #2a2a2a;
+  padding: 15px 25px;
+  border-radius: 8px;
+  margin: 15px 0;
+  color: #fff;
+}
+
+.size-info p {
+  margin: 8px 0;
+  color: #ccc;
+}
+
+.scale-control {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  color: #fff;
+}
+
+.scale-control input {
+  width: 100px;
+  padding: 8px 12px;
+  border: 1px solid #444;
+  border-radius: 6px;
+  background-color: #2a2a2a;
+  color: #fff;
+  font-size: 14px;
+}
+
+.scale-control input:focus {
+  border-color: #00ff9d;
+  outline: none;
+}
+
+.convert-button {
+  background-color: #00ff9d;
+  color: #1e1e1e;
+  padding: 12px 30px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.convert-button:hover {
+  background-color: #00cc7d;
+  transform: translateY(-2px);
+}
+
+.file-name {
+  color: #ccc;
+  font-size: 14px;
+}
+
+h1 {
+  color: #fff;
+  margin-bottom: 30px;
+  font-size: 2.2em;
+}
