@@ -8,6 +8,7 @@ const SvgConverter = () => {
   const [scale, setScale] = useState(1);
   const [preview, setPreview] = useState(null);
   const [dimensions, setDimensions] = useState(null);
+  const [format, setFormat] = useState('png'); // Add format state
 
   const onDrop = (acceptedFiles) => {
     const file = acceptedFiles[0];
@@ -36,51 +37,52 @@ const SvgConverter = () => {
 
   const handleConversion = () => {
     if (!preview) return;
-  
-    // Create a temporary SVG element to get the original dimensions
+
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = atob(preview.split(',')[1]);
     const svgElement = tempDiv.querySelector('svg');
     
-    // Get original SVG dimensions
     const originalWidth = svgElement.width.baseVal.value || svgElement.viewBox.baseVal.width;
     const originalHeight = svgElement.height.baseVal.value || svgElement.viewBox.baseVal.height;
-  
+
     const img = new Image();
     img.crossOrigin = "anonymous";
     
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      // Use original SVG dimensions for accurate scaling
       canvas.width = originalWidth * scale;
       canvas.height = originalHeight * scale;
-  
+
       const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // Set white background for JPEG
+      if (format === 'jpeg') {
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-  
+
       try {
         canvas.toBlob((blob) => {
           if (blob) {
-            const fileName = svgFile.name.replace('.svg', '.png');
+            const fileName = svgFile.name.replace('.svg', `.${format}`);
             saveAs(blob, fileName);
           }
-        }, 'image/png', 1.0);
+        }, `image/${format}`, format === 'jpeg' ? 0.9 : 1.0);
       } catch (error) {
         console.error('Conversion error:', error);
       }
     };
-  
+
     img.onerror = (error) => {
       console.error('Image loading error:', error);
     };
-  
+
     img.src = preview;
   };
 
   return (
     <div className="converter-container">
-      <h1>SVG to PNG Converter</h1>
+      <h1>SVG Converter</h1>
       
       <div {...getRootProps()} className="dropzone">
         <input {...getInputProps()} />
@@ -110,9 +112,21 @@ const SvgConverter = () => {
               onChange={(e) => setScale(Math.max(0.1, parseFloat(e.target.value) || 1))}
             />
           </div>
+
+          <div className="format-control">
+            <label htmlFor="format">Format:</label>
+            <select
+              id="format"
+              value={format}
+              onChange={(e) => setFormat(e.target.value)}
+            >
+              <option value="png">PNG</option>
+              <option value="jpeg">JPEG</option>
+            </select>
+          </div>
           
           <button onClick={handleConversion} className="convert-button">
-            Convert to PNG
+            Convert to {format.toUpperCase()}
           </button>
           
           <p className="file-name">Selected file: {svgFile.name}</p>
@@ -121,4 +135,5 @@ const SvgConverter = () => {
     </div>
   );
 };
+
 export default SvgConverter;
