@@ -1,11 +1,11 @@
 import React from 'react';
 import './App.css';
-import SvgConverter from './components/SvgConverter';
+import ImageConverter from './components/ImageConverter';
 
 function App() {
   return (
     <div className="App">
-      <SvgConverter />
+      <ImageConverter />
     </div>
   );
 }

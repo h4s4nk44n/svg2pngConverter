@@ -1,107 +1,145 @@
 import React, { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { saveAs } from 'file-saver';
-import './SvgConverter.css';
+import './ImageConverter.css';
 
-const SvgConverter = () => {
-  const [svgFile, setSvgFile] = useState(null);
+const ImageConverter = () => {
+  const [file, setFile] = useState(null);
   const [scale, setScale] = useState(1);
   const [preview, setPreview] = useState(null);
   const [dimensions, setDimensions] = useState(null);
-  const [format, setFormat] = useState('png'); // Add format state
+  const [format, setFormat] = useState('png');
+
+  const supportedFormats = {
+    'image/svg+xml': ['.svg'],
+    'image/jpeg': ['.jpg', '.jpeg'],
+    'image/png': ['.png'],
+    'image/gif': ['.gif'],
+    'image/bmp': ['.bmp'],
+    'image/tiff': ['.tiff', '.tif'],
+    'image/webp': ['.webp'],
+    'image/heif': ['.heif', '.heic']
+  };
+  
+  const browserSupportedFormats = {
+    'png': true,
+    'jpeg': true,
+    'webp': true
+  };
+
+  const formatExtensions = {
+    'png': 'png',
+    'jpeg': 'jpg',
+    'gif': 'gif',
+    'bmp': 'bmp',
+    'tiff': 'tiff',
+    'webp': 'webp',
+    'heif': 'heif'
+  };
 
   const onDrop = (acceptedFiles) => {
     const file = acceptedFiles[0];
     if (file) {
-      setSvgFile(file);
+      setFile(file);
       const reader = new FileReader();
       reader.onload = (e) => {
         setPreview(e.target.result);
-        // Get dimensions when file is loaded
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = atob(e.target.result.split(',')[1]);
-        const svgElement = tempDiv.querySelector('svg');
-        const width = svgElement.width.baseVal.value || svgElement.viewBox.baseVal.width;
-        const height = svgElement.height.baseVal.value || svgElement.viewBox.baseVal.height;
-        setDimensions({ width, height });
+        const img = new Image();
+        img.onload = () => {
+          setDimensions({ width: img.width, height: img.height });
+        };
+        img.src = e.target.result;
       };
       reader.readAsDataURL(file);
     }
   };
 
   const { getRootProps, getInputProps } = useDropzone({
-    accept: { 'image/svg+xml': ['.svg'] },
+    accept: supportedFormats,
     multiple: false,
     onDrop
   });
 
   const handleConversion = () => {
     if (!preview) return;
-
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = atob(preview.split(',')[1]);
-    const svgElement = tempDiv.querySelector('svg');
-    
-    const originalWidth = svgElement.width.baseVal.value || svgElement.viewBox.baseVal.width;
-    const originalHeight = svgElement.height.baseVal.value || svgElement.viewBox.baseVal.height;
-
+  
+    if (!browserSupportedFormats[format]) {
+      alert(`Sorry, ${format.toUpperCase()} conversion is not supported in the browser. 
+             Currently supported output formats are: PNG, JPEG, and WebP.`);
+      return;
+    }
+  
     const img = new Image();
     img.crossOrigin = "anonymous";
     
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      canvas.width = format === 'png' ? originalWidth * scale : originalWidth;
-      canvas.height = format === 'png' ? originalHeight * scale : originalHeight;
-
+      const width = format === 'png' ? dimensions.width * scale : dimensions.width;
+      const height = format === 'png' ? dimensions.height * scale : dimensions.height;
+      
+      canvas.width = width;
+      canvas.height = height;
+  
       const ctx = canvas.getContext('2d');
-      // Set white background for JPEG
+      
       if (format === 'jpeg') {
         ctx.fillStyle = '#FFFFFF';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
       }
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
+      
+      ctx.drawImage(img, 0, 0, width, height);
+  
       try {
         canvas.toBlob((blob) => {
           if (blob) {
-            const fileName = svgFile.name.replace('.svg', `.${format}`);
+            const originalExt = file.name.split('.').pop();
+            const newExt = formatExtensions[format];
+            const fileName = file.name.replace(new RegExp(`${originalExt}$`), newExt);
             saveAs(blob, fileName);
           }
         }, `image/${format}`, format === 'jpeg' ? 0.9 : 1.0);
       } catch (error) {
         console.error('Conversion error:', error);
+        alert('Error during conversion. Please try another format.');
       }
     };
-
+  
     img.onerror = (error) => {
       console.error('Image loading error:', error);
+      alert('Error loading image. Please try again.');
     };
-
+  
     img.src = preview;
   };
 
   return (
     <div className="converter-container">
-      <h1>SVG Converter</h1>
+      <h1>Image Converter</h1>
       
       <div {...getRootProps()} className="dropzone">
         <input {...getInputProps()} />
-        <p>Drop your SVG file here, or click to select</p>
+        <p>Drop your image file here, or click to select</p>
+        <p className="supported-formats">
+          Input formats: SVG, JPEG, PNG, GIF, BMP, TIFF, WebP, HEIF
+          <br />
+          Output formats: PNG, JPEG, WebP
+        </p>
       </div>
 
-      {svgFile && (
+      {file && (
         <div className="controls">
           {preview && <img src={preview} alt="Preview" className="preview-image" />}
           
           {dimensions && (
             <div className="size-info">
               <p>Original size: {Math.round(dimensions.width)}px × {Math.round(dimensions.height)}px</p>
-              {format === 'png' && (
+              {['png', 'jpeg', 'webp'].includes(format) && (
                 <p>Scaled size: {Math.round(dimensions.width * scale)}px × {Math.round(dimensions.height * scale)}px</p>
               )}
             </div>
           )}
-          {format === 'png' && (
+          
+          {['png', 'jpeg', 'webp'].includes(format) && (
             <div className="scale-control">
               <label htmlFor="scale">Scale:</label>
               <input
@@ -117,7 +155,7 @@ const SvgConverter = () => {
           )}
 
           <div className="format-control">
-            <label htmlFor="format">Format:</label>
+            <label htmlFor="format">Convert to:</label>
             <select
               id="format"
               value={format}
@@ -125,6 +163,7 @@ const SvgConverter = () => {
             >
               <option value="png">PNG</option>
               <option value="jpeg">JPEG</option>
+              <option value="webp">WebP</option>
             </select>
           </div>
           
@@ -132,11 +171,11 @@ const SvgConverter = () => {
             Convert to {format.toUpperCase()}
           </button>
           
-          <p className="file-name">Selected file: {svgFile.name}</p>
+          <p className="file-name">Selected file: {file.name}</p>
         </div>
       )}
     </div>
   );
 };
 
-export default SvgConverter;
+export default ImageConverter;
